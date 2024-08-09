@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 2.4)
+cmake_minimum_required (VERSION 3.0)
 
 if(COMMAND cmake_policy)
-      cmake_policy(SET CMP0003 NEW)
+    cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
 project (pkcs11 C)
@@ -23,23 +23,24 @@ add_executable (pkcs11-daemon ${GUI_TYPE} ${PKCS11_DAEMON_SRCS})
 
 set_target_properties(pkcs11-proxy PROPERTIES VERSION 0.1 SOVERSION 0)
 
-if (WIN32)
-  include_directories("ext/include")
+include_directories("ext/include")
+include_directories("${CMAKE_SOURCE_DIR}/sys")
 
-  add_library(dl STATIC IMPORTED)
-  set_property(TARGET dl PROPERTY
-               IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ext/lib/libdl.a)
-  target_link_libraries (pkcs11-daemon ws2_32)
-  target_link_libraries (pkcs11-proxy ws2_32)
-endif (WIN32)
+add_library(dl STATIC IMPORTED)
+set_property(TARGET dl PROPERTY
+              IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/ext/lib/libdl.a)
+target_link_libraries (pkcs11-daemon ws2_32)
+target_link_libraries (pkcs11-proxy ws2_32)
+message(STATUS "Step 1")
 
 target_link_libraries (pkcs11-proxy pthread ssl crypto)
-target_link_libraries (pkcs11-daemon dl pthread ssl crypto seccomp)
+target_link_libraries (pkcs11-daemon dl pthread ssl crypto)
 
-install_targets (/lib pkcs11-proxy)
-install_targets (/bin pkcs11-daemon)
+install(TARGETS pkcs11-proxy DESTINATION /lib)
+install(TARGETS pkcs11-daemon DESTINATION /bin)
 
 add_custom_command(
-   OUTPUT syscall-names.h 
+   OUTPUT syscall-names.h
    COMMAND ${CMAKE_SOURCE_DIR}/mksyscalls.sh
-   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   COMMENT "Generating syscall-names.h")

@@ -30,10 +30,16 @@
 #include <assert.h>
 
 /* for file I/O */
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#define O_CLOEXEC 0
+#else
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 /* TLS pre-shared key */
 static char tls_psk_identity[128] = { 0, };

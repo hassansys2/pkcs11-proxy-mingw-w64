@@ -35,6 +35,7 @@
 #include <sys/param.h>
 #ifdef __MINGW32__
 # include <winsock2.h>
+#include <ws2tcpip.h>
 #else
 # include <sys/socket.h>
 # include <sys/un.h>
@@ -51,7 +52,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#ifdef __MINGW32__
+#include "win_syslog.h"
+#define MSG_NOSIGNAL 0x4000
+#else
 #include <syslog.h>
+#endif
 
 #ifdef SECCOMP
 #include <seccomp.h>
@@ -61,7 +67,12 @@
 #endif /* DEBUG_SECCOMP */
 #include <fcntl.h> /* for seccomp init */
 #endif /* SECCOMP */
+#ifdef __MINGW32__
+#include "mman.h"
+#else
 #include <sys/mman.h>
+#endif
+
 
 /* Where we dispatch the calls to */
 static CK_FUNCTION_LIST_PTR pkcs11_module = NULL;
@@ -136,7 +147,9 @@ void gck_rpc_log(const char *msg, ...)
 	vfprintf(stderr, msg, ap);
 	fprintf(stderr, "\n");
 #else
-        vsyslog(LOG_INFO,msg,ap);        
+        //vsyslog(LOG_INFO,msg,ap);   
+	vfprintf(stderr, msg, ap);
+	fprintf(stderr, "\n");     
 #endif
 	va_end(ap);
 }
@@ -2371,8 +2384,8 @@ void gck_rpc_layer_accept(GckRpcTlsPskState *tls)
 	}
 
 	ds->cs.sock = new_fd;
-        ds->cs.read = &read_all;
-        ds->cs.write = &write_all;
+        ds->cs.read = (void*) &read_all;
+        ds->cs.write = (void*) &write_all;
 	ds->cs.addr = addr;
 	ds->cs.addrlen = addrlen;
 	ds->cs.tls = tls;
@@ -2409,8 +2422,8 @@ void gck_rpc_layer_inetd(CK_FUNCTION_LIST_PTR module)
 
    memset(&cs, 0, sizeof(cs));
    cs.sock = STDIN_FILENO;
-   cs.read = &_inetd_read;
-   cs.write = &_inetd_write;
+   cs.read = (void*) &_inetd_read;
+   cs.write = (void*) &_inetd_write;
 
    pkcs11_module = module;
 

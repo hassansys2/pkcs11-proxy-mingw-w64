@@ -35,13 +35,26 @@
 #include <string.h>
 #include <signal.h>
 
+#ifdef __MINGW32__
+#include <windows.h>
+#define dlopen(libname, flags) LoadLibrary(libname)
+#define dlsym(handle, symbol) GetProcAddress(handle, symbol)
+#define dlclose(handle) FreeLibrary(handle)
+#define dlerror() "Error loading library"
+#else
 #include <dlfcn.h>
+#endif
 #include <pthread.h>
 
-#include <syslog.h>
+#ifdef __MINGW32__
+#include "syscall-names.h"
+#else
+#include <sys/syscall.h>
+#endif
 
 #ifdef __MINGW32__
 # include <winsock2.h>
+#include <ws2tcpip.h>
 #endif
 
 #define SOCKET_PATH "tcp://127.0.0.1"
@@ -221,7 +234,7 @@ int main(int argc, char *argv[])
 	if (argc != 2 && argc != 3)
 		usage();
 
-        openlog("pkcs11-proxy",LOG_CONS|LOG_PID,LOG_DAEMON);
+        //openlog("pkcs11-proxy",LOG_CONS|LOG_PID,LOG_DAEMON);
 
 	/* Load the library */
 	module = dlopen(argv[1], RTLD_NOW);

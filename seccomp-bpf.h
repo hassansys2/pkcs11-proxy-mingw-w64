@@ -21,14 +21,36 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __MINGW32__
+#include "prctl.h"
+#else
 #include <sys/prctl.h>
+#endif
 #ifndef PR_SET_NO_NEW_PRIVS
 # define PR_SET_NO_NEW_PRIVS 38
 #endif
 
-#include <linux/unistd.h>
-#include <linux/audit.h>
-#include <linux/filter.h>
+#ifdef _WIN32
+
+typedef struct {
+    int si_signo;  // Signal number
+    int si_code;   // Signal code
+    int si_errno;  // An errno value
+    // Add other fields as needed for compatibility
+} siginfo_t;
+
+#endif
+
+// #ifdef __MINGW32__
+// typedef uint32_t __u32;
+// typedef uint16_t __u16;
+// typedef uint8_t  __u8;
+// #else
+// #include <linux/unistd.h>
+// #include <linux/audit.h>
+// #include <linux/filter.h>
+// #endif
+#include <stdint.h>
 #ifdef HAVE_LINUX_SECCOMP_H
 # include <linux/seccomp.h>
 #endif
@@ -39,9 +61,9 @@
 # define SECCOMP_RET_ALLOW	0x7fff0000U /* allow */
 struct seccomp_data {
     int nr;
-    __u32 arch;
-    __u64 instruction_pointer;
-    __u64 args[6];
+    uint32_t arch;
+    uint64_t instruction_pointer;
+    uint64_t args[6];
 };
 #endif
 #ifndef SYS_SECCOMP
