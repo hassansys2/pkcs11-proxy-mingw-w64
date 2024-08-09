@@ -422,6 +422,18 @@ static CK_RV call_connect(CallState * cs)
 
 	memset(&addr, 0, sizeof(addr));
 
+	#ifdef  __MINGW32__
+        {
+                WSADATA wsaData;
+                int iResult;
+
+                iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+                if (iResult != 0) {
+                        gck_rpc_warn("WSAStartup failed: %d\n", iResult);
+                        return -1;
+                }
+        }
+	#endif
 	if (! strncmp("tcp://", pkcs11_socket_path, 6) ||
 	    ! strncmp("tls://", pkcs11_socket_path, 6)) {
 		char *host, *port;
