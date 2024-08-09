@@ -54,7 +54,7 @@
 #include <stdio.h>
 #ifdef __MINGW32__
 #include "win_syslog.h"
-#define MSG_NOSIGNAL 0x4000
+#define MSG_NOSIGNAL 0x00
 #else
 #include <syslog.h>
 #endif

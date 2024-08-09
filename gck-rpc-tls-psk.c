@@ -30,7 +30,7 @@
 #include <assert.h>
 
 /* for file I/O */
-#ifdef _WIN32
+#ifdef __MINGW32__
 #include <io.h>
 #include <fcntl.h>
 #define O_CLOEXEC 0

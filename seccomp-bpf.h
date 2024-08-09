@@ -30,7 +30,7 @@
 # define PR_SET_NO_NEW_PRIVS 38
 #endif
 
-#ifdef _WIN32
+#ifdef __MINGW32__
 
 typedef struct {
     int si_signo;  // Signal number
